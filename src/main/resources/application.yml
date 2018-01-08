@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:mysql://39.108.173.192:3306/android?characterEncoding=utf8
+    username: OutisJie
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+  jpa:
+      database: MySQL
+      show-sql: true
+      hibernate:
+        naming:
+          strategy: org.hibernate.cfg.ImprovedNamingStrategy
