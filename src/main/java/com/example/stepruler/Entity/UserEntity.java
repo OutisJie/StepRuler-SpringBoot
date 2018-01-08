@@ -21,6 +21,9 @@ public class UserEntity implements Serializable {
     @Column(name = "device")
     private String device;
 
+    @Column(name = "user_img")
+    private String userImg;
+
     public int getUserId() {
         return userId;
     }
@@ -51,5 +54,13 @@ public class UserEntity implements Serializable {
 
     public void setDevice(String device) {
         this.device = device;
+    }
+
+    public String getUserImg() {
+        return userImg;
+    }
+
+    public void setUserImg(String userImg) {
+        this.userImg = userImg;
     }
 }

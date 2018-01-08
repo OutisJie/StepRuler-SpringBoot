@@ -4,9 +4,12 @@ import com.example.stepruler.Entity.FriendEntity;
 import com.example.stepruler.Entity.UserEntity;
 import com.example.stepruler.jpa.FriendJPA;
 import com.example.stepruler.jpa.UserJPA;
+import com.example.stepruler.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.websocket.server.PathParam;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +21,9 @@ public class UserController {
 
     @Autowired
     private FriendJPA friendJPA;
+
+    @Autowired
+    private UserService userService;
 
     @RequestMapping(value = "/register",method = RequestMethod.POST)
     public String register(@RequestBody UserEntity entity){
@@ -90,7 +96,7 @@ public class UserController {
 
     //添加好友
     @RequestMapping(value = "/addFriend", method = RequestMethod.POST)
-    private Boolean addFriend(@RequestParam("user_id1") int id1, @RequestParam("user_id2") int id2){
+    public Boolean addFriend(@RequestParam("user_id1") int id1, @RequestParam("user_id2") int id2){
         FriendEntity.Friends friends = new FriendEntity.Friends();
         friends.setUserId1(id1);
         friends.setUserId2(id2);
@@ -108,5 +114,11 @@ public class UserController {
         friendEntity.setFriends(friends);
         friendJPA.save(friendEntity);
         return true;
+    }
+
+    //修改用户头像
+    @RequestMapping(value = "/postImg", method = RequestMethod.POST)
+    public String postImg(@PathParam("user_id") int user_id, @RequestParam("photo")MultipartFile file){
+        return userService.updatePhoto(user_id, file);
     }
 }
