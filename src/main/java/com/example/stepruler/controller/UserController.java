@@ -2,6 +2,7 @@ package com.example.stepruler.controller;
 
 import com.example.stepruler.Entity.FriendEntity;
 import com.example.stepruler.Entity.UserEntity;
+import com.example.stepruler.builder.MD5Util;
 import com.example.stepruler.jpa.FriendJPA;
 import com.example.stepruler.jpa.UserJPA;
 import com.example.stepruler.service.UserService;
@@ -25,57 +26,64 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(value = "/register",method = RequestMethod.POST)
-    public String register(@RequestBody UserEntity entity){
-        List<UserEntity> users=userJPA.findAll();
-        for(UserEntity user:users){
-            if(entity.getUserName().equals(user.getUserName())) {
+    //注册
+    @RequestMapping(value = "/register", method = RequestMethod.POST)
+    public String register(@RequestBody UserEntity entity) {
+        List<UserEntity> users = userJPA.findAll();
+        for (UserEntity user : users) {
+            if (entity.getUserName().equals(user.getUserName())) {
                 return "failed";
             }
         }
-        entity.setDevice("-2");
-        userJPA.save(entity);
+        UserEntity nUserEntity = new UserEntity();
+        nUserEntity.setUserName(entity.getUserName());
+        nUserEntity.setUserPwd(MD5Util.encode(entity.getUserPwd()));
+        userJPA.save(nUserEntity);
         return "success";
     }
 
-    @RequestMapping(value = "/login",method = RequestMethod.POST)
-    public int login(@RequestBody UserEntity entity){
-        List<UserEntity>users=userJPA.findAll();
-        for(UserEntity user:users){
-            if(entity.getUserName().equals(user.getUserName())&&entity.getUserPwd().equals(user.getUserPwd())){
+
+    //登录
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    public int login(@RequestParam("user_name") String name, @RequestParam("user_pwd") String pwd) {
+        String entity_pwd = MD5Util.encode(pwd);
+        List<UserEntity> users = userJPA.findAll();
+        for (UserEntity user : users) {
+            if (name.equals(user.getUserName()) && entity_pwd.equals(user.getUserPwd())) {
                 return user.getUserId();
             }
-            if(entity.getUserName().equals(user.getUserName())&&!entity.getUserPwd().equals(user.getUserPwd())){
+            if (name.equals(user.getUserName()) && !entity_pwd.equals(user.getUserPwd())) {
                 return -2;
             }
         }
         return -1;
     }
 
-    @RequestMapping(value = "/search",method = RequestMethod.POST)
-    public ArrayList<String> search(@RequestParam("user_name") String name){
-        ArrayList<String> names=new ArrayList<>();
-        if(name==""){
+
+    @RequestMapping(value = "/search", method = RequestMethod.POST)
+    public ArrayList<String> search(@RequestParam("user_name") String name) {
+        ArrayList<String> names = new ArrayList<>();
+        if (name == "") {
             names.add("没有查询到该数据");
             return names;
         }
-        List<UserEntity>users=userJPA.findAll();
-        for(UserEntity user:users){
-            if(user.getUserName().contains(name))
+        List<UserEntity> users = userJPA.findAll();
+        for (UserEntity user : users) {
+            if (user.getUserName().contains(name))
                 names.add(user.getUserName());
         }
-        if(names.isEmpty())names.add("没有查询到该数据");
+        if (names.isEmpty()) names.add("没有查询到该数据");
         return names;
     }
 
     @RequestMapping(value = "/friends", method = RequestMethod.GET)
-    public List<UserEntity> getFriends(@RequestParam("user_id") int user_id){
+    public List<UserEntity> getFriends(@RequestParam("user_id") int user_id) {
         return userJPA.findFriends(user_id);
     }
 
     //提交用户登录的设备号
     @RequestMapping(value = "/postDevice", method = RequestMethod.POST)
-    public Boolean commitDevice(@RequestParam("user_id") int id, @RequestParam("device_id") String device){
+    public Boolean commitDevice(@RequestParam("user_id") int id, @RequestParam("device_id") String device) {
         UserEntity user = userJPA.findOne(id);
         user.setDevice(device);
         userJPA.save(user);
@@ -84,19 +92,20 @@ public class UserController {
 
     //获取对方的设备id
     @RequestMapping(value = "/getDevice", method = RequestMethod.GET)
-    public String getDevice(@RequestParam("user_name") String name, @RequestParam("user_id") int id){
+    public String getDevice(@RequestParam("user_name") String name, @RequestParam("user_id") int id) {
         UserEntity user = userJPA.findByUserName(name);
         List<FriendEntity> list = friendJPA.findAllByFriends_UserId2(user.getUserId());
-        for(FriendEntity item : list){
-            if(item.getFriends().getUserId1() == id)
+        for (FriendEntity item : list) {
+            if (item.getFriends().getUserId1() == id)
                 return "-1";
         }
-        return user.getDevice();
+        String device = "\"" + user.getDevice() + "\"";
+        return device;
     }
 
     //添加好友
     @RequestMapping(value = "/addFriend", method = RequestMethod.POST)
-    public Boolean addFriend(@RequestParam("user_id1") int id1, @RequestParam("user_id2") int id2){
+    public Boolean addFriend(@RequestParam("user_id1") int id1, @RequestParam("user_id2") int id2) {
         FriendEntity.Friends friends = new FriendEntity.Friends();
         friends.setUserId1(id1);
         friends.setUserId2(id2);
@@ -104,7 +113,7 @@ public class UserController {
         friendEntity.setFriends(friends);
         //如果已经是好友了，则返回false
         List<FriendEntity> list = friendJPA.findAllByFriends_UserId1(id1);
-        for(FriendEntity item : list) {
+        for (FriendEntity item : list) {
             if (item.getFriends().getUserId2() == friendEntity.getFriends().getUserId2())
                 return false;
         }
@@ -118,7 +127,16 @@ public class UserController {
 
     //修改用户头像
     @RequestMapping(value = "/postImg", method = RequestMethod.POST)
-    public String postImg(@PathParam("user_id") int user_id, @RequestParam("photo")MultipartFile file){
+    public String postImg(@PathParam("user_id") int user_id, @RequestParam("photo") MultipartFile file) {
         return userService.updatePhoto(user_id, file);
+    }
+
+    //根据用户id返回用户名
+    @RequestMapping(value = "/getUserInfo",method = RequestMethod.GET)
+    public List<String> getUserInfo(@RequestParam("user_id") int id){
+        List<String> info = new ArrayList<>();
+        info.add(userJPA.findByUserId(id).getUserName());
+        info.add(userJPA.findByUserId(id).getUserPwd());
+        return info;
     }
 }

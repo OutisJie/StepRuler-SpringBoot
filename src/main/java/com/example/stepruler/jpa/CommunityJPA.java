@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface CommunityJPA extends BaseRepository<CommunityEntity, Long>{
+public interface CommunityJPA extends BaseRepository<CommunityEntity, Integer>{
     //根据用户id查询他所发过的所有朋友圈
     @Query(value = "select * from community where user_id = ?1 ORDER BY community_date DESC ", nativeQuery = true)
     public List<CommunityEntity> findAllByUserId(int id);

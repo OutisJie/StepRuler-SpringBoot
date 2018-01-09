@@ -28,7 +28,7 @@ public class UserService {
             UserEntity user = userJPA.findOne(user_id);
             user.setUserImg(filename);
             userJPA.save(user);
-            return filename;
+            return "\"" + filename + "\"";
         } catch (IOException e) {
             e.printStackTrace();
         }

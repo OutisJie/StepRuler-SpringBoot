@@ -18,13 +18,34 @@ public class CommentController {
     @Autowired
     private CommentJPA commentJPA;
 
-    @RequestMapping(value = "/getComments",method = RequestMethod.POST)
-    public ArrayList<CommentEntity> getComments(@RequestParam("community_id") int id){
-        List<CommentEntity>commentEntities=commentJPA.findAll();
-        ArrayList<CommentEntity>found=new ArrayList<>();
-        for(CommentEntity commentEntity:commentEntities){
-            if(commentEntity.getCommunityId()==id){
+    //获取评论
+    @RequestMapping(value = "/getComments", method = RequestMethod.POST)
+    public ArrayList<CommentEntity> getComments(@RequestParam("community_id") int id) {
+        List<CommentEntity> commentEntities = commentJPA.findAll();
+        ArrayList<CommentEntity> found = new ArrayList<>();
+        for (CommentEntity commentEntity : commentEntities) {
+            if (commentEntity.getCommunityId() == id) {
                 found.add(commentEntity);
+            }
+        }
+        return found;
+    }
+
+    //添加评论
+    @RequestMapping(value = "/addComment", method = RequestMethod.POST)
+    public ArrayList<CommentEntity> addComment(@RequestParam("community_id") int id,
+                                               @RequestParam("comment_text") String text,
+                                               @RequestParam("user_name") String username) {
+        CommentEntity commentEntity = new CommentEntity();
+        commentEntity.setCommentId(id);
+        commentEntity.setCommentText(text);
+        commentEntity.setUserName(username);
+        commentJPA.save(commentEntity);
+        List<CommentEntity> commentEntities = commentJPA.findAll();
+        ArrayList<CommentEntity> found = new ArrayList<>();
+        for (CommentEntity a : commentEntities) {
+            if (a.getCommunityId() == id) {
+                found.add(a);
             }
         }
         return found;

@@ -19,6 +19,6 @@ public interface UserJPA extends
 
     public UserEntity findByUserName(String naem);
 
-
+    public UserEntity findByUserId(int id);
 
 }
