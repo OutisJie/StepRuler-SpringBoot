@@ -11,7 +11,7 @@ import java.util.List;
 public interface UserJPA extends
         JpaRepository<UserEntity,Integer>,
         JpaSpecificationExecutor<UserEntity>,
-        Serializable{
+        Serializable {
 
     //根据用户id查找他的好友
     @Query(value = "select * from user where user_id in (select user_id2 from friend where user_id1 = ?1)", nativeQuery = true)

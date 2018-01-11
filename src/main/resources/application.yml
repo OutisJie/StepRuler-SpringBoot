@@ -10,3 +10,5 @@ spring:
       hibernate:
         naming:
           strategy: org.hibernate.cfg.ImprovedNamingStrategy
+server:
+  port: 9909
